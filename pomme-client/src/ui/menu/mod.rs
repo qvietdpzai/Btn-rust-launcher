@@ -1045,6 +1045,10 @@ impl MainMenu {
         self.account_required && self.access_token.is_none()
     }
 
+    pub(crate) fn username(&self) -> &str {
+        &self.username
+    }
+
     /// Puts the menu behind sign-in: with no account, it opens on the
     /// account screen and only Sign In or Quit leave it.
     pub(crate) fn require_account(&mut self, key_bindings: &KeyBindings) {

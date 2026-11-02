@@ -208,7 +208,7 @@ pub fn update_menu(
             core.user = match &account {
                 Some(account) => crate::user::UserData::from_account(account),
                 None => {
-                    crate::user::UserData::from_args(Some(core.user.username.clone()), None, None)
+                    crate::user::UserData::from_args(Some(core.menu.username().to_string()), None, None)
                 }
             };
             core.menu.set_account(

@@ -21,6 +21,8 @@ impl MainMenu {
     pub(super) fn open_account(&mut self, key_bindings: &KeyBindings) {
         self.cancel_sign_in();
         self.offline_name.set_value(&self.username, 180.0, &|s: &str| s.len() as f32 * 5.0);
+        self.focused_field = Some(0);
+        self.offline_name.set_focused(true);
         self.set_screen(Screen::Account, key_bindings);
     }
 
@@ -272,7 +274,7 @@ impl MainMenu {
             Some("Cancel") => self.cancel_sign_in(),
             Some("Back") => {
                 let name = self.offline_name.value().trim().to_string();
-                if !name.is_empty() && name != self.username {
+                if !name.is_empty() {
                     self.username = name;
                     action = MenuAction::Account(None);
                 }
