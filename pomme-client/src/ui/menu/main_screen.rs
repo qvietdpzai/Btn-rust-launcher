@@ -204,7 +204,9 @@ impl MainMenu {
                 w: scaled_rect[2],
                 h: scaled_rect[3],
                 corner_radius: btn_r * scale,
-                color: if active { glass_hover } else { glass },
+                color: if def.label == "Quit Game" {
+                    if active { [0.25, 0.1, 0.1, 0.6] } else { [0.15, 0.06, 0.06, 0.4] }
+                } else if active { glass_hover } else { glass },
             });
 
             let bar_margin = scaled_h * 0.18;
@@ -236,6 +238,8 @@ impl MainMenu {
                 scale: font_size,
                 color: if !def.enabled {
                     text_disabled
+                } else if def.label == "Quit Game" {
+                    [0.9, 0.4, 0.4, 1.0]
                 } else if active {
                     text_bright
                 } else {

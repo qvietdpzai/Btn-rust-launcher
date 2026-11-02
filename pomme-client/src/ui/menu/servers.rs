@@ -849,6 +849,7 @@ impl MainMenu {
             TextTarget::WorldSearch => &mut self.world_search,
             TextTarget::WorldName => &mut self.world_name,
             TextTarget::WorldSeed => &mut self.world_seed,
+            TextTarget::OfflineName => &mut self.offline_name,
         }
     }
 
@@ -861,6 +862,7 @@ impl MainMenu {
             TextTarget::WorldSearch => &self.world_search,
             TextTarget::WorldName => &self.world_name,
             TextTarget::WorldSeed => &self.world_seed,
+            TextTarget::OfflineName => &self.offline_name,
         }
     }
 
@@ -873,7 +875,7 @@ impl MainMenu {
             (Screen::OptionsResourcePacks, 0) => Some(TextTarget::PackSearch),
             (Screen::Friends, 0) => Some(TextTarget::AddFriend),
             (Screen::WorldList, 0) => Some(TextTarget::WorldSearch),
-            (Screen::CreateWorld, 0) => Some(self.create.field_target()?),
+            (Screen::Account, 0) => Some(TextTarget::OfflineName),
             (Screen::EditWorld(_), 0) => Some(TextTarget::WorldName),
             _ => None,
         }
@@ -1126,6 +1128,7 @@ pub(super) enum TextTarget {
     WorldSearch,
     WorldName,
     WorldSeed,
+    OfflineName,
 }
 
 fn push_undo(stack: &mut Vec<(u8, String)>, field_idx: u8, prev: String) {
