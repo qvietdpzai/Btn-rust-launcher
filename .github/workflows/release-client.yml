@@ -293,6 +293,7 @@ jobs:
       # Build OpenAL Soft for Android (arm64-v8a), staged into jniLibs.
       - name: Build OpenAL Soft (Android)
         run: |
+          rm -rf target/openal-soft
           python3 tools/build_openal.py android pomme-android/app/src/main/jniLibs/arm64-v8a
 
       # Build the Rust cdylib into jniLibs/arm64-v8a/libpomme_android.so.
