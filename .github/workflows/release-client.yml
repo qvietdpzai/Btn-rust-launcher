@@ -147,6 +147,20 @@ jobs:
           POMME_RELEASE: ${{ needs.check.outputs.tag }}
         run: cargo build -p pomme-client --release --target ${{ matrix.target }}
 
+      # Cargo sinh ra ten binary theo ten package (pomme-client), doi ten de
+      # khop voi artifact matrix va duoc dong goi dung ten btn-rust-launcher.
+      - name: Rename binary (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          Rename-Item "target/${{ matrix.target }}/release/pomme-client.exe" "target/${{ matrix.target }}/release/${{ matrix.artifact }}" -ErrorAction SilentlyContinue
+
+      - name: Rename binary (Unix)
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: |
+          mv "target/${{ matrix.target }}/release/pomme-client" "target/${{ matrix.target }}/release/${{ matrix.artifact }}" 2>/dev/null || true
+
       # The runner images disagree on whether `python` or `python3` is on PATH,
       # and the `--require` staging below fails the release rather than degrade.
       - uses: actions/setup-python@v7
