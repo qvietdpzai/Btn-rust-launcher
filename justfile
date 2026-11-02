@@ -66,26 +66,26 @@ wire-fixtures +versions: openal
 ingame-server:
     @cargo run -p ingame-test -- --server-only
 
-# Android (pomme-android/README.md): the arm64 debug APK.
-android_app := "com.pommemc.client"
+# Android (btn-rust-launcher-android/README.md): the arm64 debug APK.
+android_app := "com.btn.btnrustlauncher"
 
 android-build:
-    @python3 tools/build_openal.py android pomme-android/app/src/main/jniLibs/arm64-v8a
-    @cargo ndk -t arm64-v8a -o pomme-android/app/src/main/jniLibs build -p pomme-android
-    @cd pomme-android && ./gradlew -q assembleDebug
+    @python3 tools/build_openal.py android btn-rust-launcher-android/app/src/main/jniLibs/arm64-v8a
+    @cargo ndk -t arm64-v8a -o btn-rust-launcher-android/app/src/main/jniLibs build -p pomme-android
+    @cd btn-rust-launcher-android && ./gradlew -q assembleDebug
 
 android-install: android-build
-    @adb install -r pomme-android/app/build/outputs/apk/debug/app-debug.apk
+    @adb install -r btn-rust-launcher-android/app/build/outputs/apk/debug/app-debug.apk
 
 android-run:
     @adb shell am start -n {{ android_app }}/android.app.NativeActivity
 
 # Copies a desktop install's `minecraft/` assets and version files into the
 # app's own storage, through a staging dir `run-as` can read.
-android-push-assets src=(home_directory() / "Library/Application Support/Pomme/minecraft"):
+android-push-assets src=(home_directory() / "Library/Application Support/btn rust launcher/minecraft"):
     #!/usr/bin/env bash
     set -e
-    stage=/data/local/tmp/pomme
+    stage=/data/local/tmp/btn-rust-launcher
     adb shell rm -rf "$stage" && adb shell mkdir -p "$stage/versions"
     adb push "{{ src }}/assets" "$stage/"
     adb push "{{ src }}/versions/26.2" "$stage/versions/"
@@ -100,7 +100,7 @@ android-config *args:
     echo "{{ args }}" | adb shell run-as {{ android_app }} sh -c "'mkdir -p files && cat > files/launch.txt'"
 
 android-log:
-    @adb logcat -s pomme:V RustStdoutStderr:V AndroidRuntime:E DEBUG:V
+    @adb logcat -s btn:V RustStdoutStderr:V AndroidRuntime:E DEBUG:V
 
 # iOS (pomme-ios/README.md). `team` is your Apple Developer team id.
 

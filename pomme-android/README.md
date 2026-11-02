@@ -17,7 +17,7 @@ export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
 sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0" \
     "ndk;27.2.12479018" "cmake;3.22.1" "emulator" \
     "system-images;android-35;google_apis;arm64-v8a"
-avdmanager create avd -n pomme -k "system-images;android-35;google_apis;arm64-v8a" -d pixel_7
+avdmanager create avd -n btn-rust-launcher -k "system-images;android-35;google_apis;arm64-v8a" -d pixel_7
 ```
 
 Gradle needs JDK 17; the Android Gradle plugin doesn't run on newer ones.
@@ -27,22 +27,22 @@ which the first `android-build` compiles from source.
 ## Running
 
 ```sh
-emulator -avd pomme -gpu host &           # or a phone with USB debugging on
-just ingame-server                         # prints the port; offline mode
-just android-install                       # builds the APK and installs it
-just android-push-assets                   # optional: copy a desktop install's assets
-                                           # instead of downloading them
+emulator -avd btn-rust-launcher -gpu host &   # or a phone with USB debugging on
+just ingame-server                             # prints the port; offline mode
+just android-install                           # builds the APK and installs it
+just android-push-assets                       # optional: copy a desktop install's assets
+                                               # instead of downloading them
 just android-config --version 26.2 --username Tester \
     --quick-access-multiplayer 10.0.2.2:<port>
 just android-run
-just android-log                           # logcat, filtered to pomme
+just android-log                               # logcat, filtered to btn
 ```
 
 `10.0.2.2` is the Mac as seen from the emulator. `launch.txt` (what
 `android-config` writes) holds the same flags the desktop client takes. It
 and the data folder (laid out as on desktop: `minecraft/`, `profiles/` and so
 on) live in the app's internal storage, reached with
-`adb shell run-as com.pommemc.client`.
+`adb shell run-as com.btn.btnrustlauncher`.
 
 ## Signing in
 

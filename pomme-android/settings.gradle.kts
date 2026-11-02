@@ -11,5 +11,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "pomme-android"
+rootProject.name = "btn-rust-launcher-android"
 include(":app")

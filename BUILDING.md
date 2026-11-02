@@ -122,7 +122,8 @@ launcher/             left by the old launcher: its settings, installations and 
 ### Android
 
 An early arm64 build with touch controls; setup and limitations are in
-[`pomme-android/README.md`](pomme-android/README.md).
+[`pomme-android/README.md`](pomme-android/README.md). The app installs as
+`btn rust launcher` (package `com.btn.btnrustlauncher`).
 
 ### iOS
 
