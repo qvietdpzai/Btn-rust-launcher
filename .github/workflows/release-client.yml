@@ -305,18 +305,18 @@ jobs:
 
       # Assemble the debug APK with Gradle.
       - name: Assemble APK
-        working-directory: btn-rust-launcher-android
+        working-directory: pomme-android
         run: ./gradlew -q assembleDebug
 
       - name: Rename APK to btn rust launcher
         run: |
-          mv btn-rust-launcher-android/app/build/outputs/apk/debug/app-debug.apk \
-             btn-rust-launcher-android/app/build/outputs/apk/debug/btn-rust-launcher-android.apk
+          mv pomme-android/app/build/outputs/apk/debug/app-debug.apk \
+             pomme-android/app/build/outputs/apk/debug/btn-rust-launcher-android.apk
 
       - uses: actions/upload-artifact@v7
         with:
           name: btn-rust-launcher-android
-          path: btn-rust-launcher-android/app/build/outputs/apk/debug/btn-rust-launcher-android.apk
+          path: pomme-android/app/build/outputs/apk/debug/btn-rust-launcher-android.apk
 
   release-client:
     needs: [check, build-client, build-android]
