@@ -20,6 +20,7 @@ pub(super) enum SignIn {
 impl MainMenu {
     pub(super) fn open_account(&mut self, key_bindings: &KeyBindings) {
         self.cancel_sign_in();
+        self.offline_name.set_value(&self.username, 180.0, &|s: &str| s.len() as f32 * 5.0);
         self.set_screen(Screen::Account, key_bindings);
     }
 
@@ -191,6 +192,40 @@ impl MainMenu {
         self.focus_advance(input);
         let mut ctx = self.make_focus_ctx(input);
         let mut pressed = None;
+
+        // Offline username field (shown when not signed in).
+        let is_signed_in = self.access_token.is_some();
+        if !is_signed_in {
+            let field_w = 200.0 * gs;
+            let field_h = 15.0 * gs;
+            let field_x = cx - field_w / 2.0;
+            let field_y = y;
+            self.text_field(
+                &mut elements,
+                TextTarget::OfflineName,
+                0,
+                input,
+                field_x,
+                field_y,
+                field_w,
+                field_h,
+                fs,
+                gs,
+                text_width_fn,
+            );
+            if self.offline_name.value().is_empty() && self.focused_field != Some(0) {
+                elements.push(MenuElement::Text {
+                    x: field_x + 4.0 * gs,
+                    y: field_y + (field_h - fs) / 2.0,
+                    text: "Player name...".into(),
+                    scale: fs,
+                    color: COL_DIM,
+                    centered: false,
+                });
+            }
+            y += field_h + spacing;
+        }
+
         let row_x = cx - (n * btn_w + (n - 1.0) * gap) / 2.0;
         for (i, label) in buttons.into_iter().enumerate() {
             let x = row_x + (i as f32) * (btn_w + gap);
@@ -226,9 +261,23 @@ impl MainMenu {
                     crate::util::open_url(&code.verification_uri);
                 }
             }
-            Some("Sign Out") => action = MenuAction::Account(None),
+            Some("Sign Out") => {
+                let name = self.offline_name.value().trim().to_string();
+                if !name.is_empty() {
+                    self.username = name;
+                }
+                action = MenuAction::Account(None);
+            }
             Some("Cancel") => self.cancel_sign_in(),
-            Some("Back") => self.close_account(key_bindings),
+            Some("Back") => {
+                let name = self.offline_name.value().trim().to_string();
+                if !name.is_empty() && name != self.username {
+                    self.username = name;
+                    action = MenuAction::Account(None);
+                } else {
+                    self.close_account(key_bindings);
+                }
+            }
             Some("Quit") => action = MenuAction::Quit,
             _ => {}
         }
