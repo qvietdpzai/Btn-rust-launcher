@@ -1178,12 +1178,13 @@ fn android_clipboard_get() -> Option<String> {
     let vm = unsafe { jni::JavaVM::from_raw(app.vm_as_ptr().cast()) };
     vm.attach_current_thread(|env| -> Result<Option<String>, jni::errors::Error> {
         let activity = unsafe { JObject::from_raw(env, app.activity_as_ptr().cast()) };
+        let clipboard_service = env.new_string("clipboard")?;
         let clipboard = env
             .call_method(
                 &activity,
                 jni_str!("getSystemService"),
                 jni_sig!("(Ljava/lang/String;)Ljava/lang/Object;"),
-                &[JValue::Object(&env.new_string("clipboard").unwrap())],
+                &[JValue::Object(&clipboard_service)],
             )?
             .l()?;
         let clip = env
@@ -1219,7 +1220,10 @@ fn android_clipboard_get() -> Option<String> {
         let s = env
             .call_method(&text, jni_str!("toString"), jni_sig!("()Ljava/lang/String;"), &[])?
             .l()?;
-        let rust_str: String = env.get_string(&s.into()).unwrap_or_default().into();
+        let rust_str: String = match env.get_string(&s.into()) {
+            Ok(js) => js.into(),
+            Err(_) => String::new(),
+        };
         Ok(Some(rust_str))
     })
     .ok()
@@ -1238,12 +1242,13 @@ fn android_clipboard_set(text: &str) -> bool {
     let vm = unsafe { jni::JavaVM::from_raw(app.vm_as_ptr().cast()) };
     vm.attach_current_thread(|env| -> Result<bool, jni::errors::Error> {
         let activity = unsafe { JObject::from_raw(env, app.activity_as_ptr().cast()) };
+        let clipboard_service = env.new_string("clipboard")?;
         let clipboard = env
             .call_method(
                 &activity,
                 jni_str!("getSystemService"),
                 jni_sig!("(Ljava/lang/String;)Ljava/lang/Object;"),
-                &[JValue::Object(&env.new_string("clipboard").unwrap())],
+                &[JValue::Object(&clipboard_service)],
             )?
             .l()?;
         let label = env.new_string("btn rust launcher")?;
