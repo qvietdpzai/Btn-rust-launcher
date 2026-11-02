@@ -379,6 +379,12 @@ impl App {
         self.core.menu.restore_account();
     }
 
+    /// Restore a stored Microsoft account in the background without gating
+    /// the menu, so offline play stays the default but sign-in is remembered.
+    pub fn restore_account(&mut self) {
+        self.core.menu.restore_account();
+    }
+
     #[cfg(feature = "test-harness")]
     pub fn with_harness(mut self, harness: Option<crate::harness::Harness>) -> Self {
         // A test window rarely has focus, so it must not pause on losing it.

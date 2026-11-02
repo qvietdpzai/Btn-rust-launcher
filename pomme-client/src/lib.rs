@@ -237,6 +237,8 @@ pub fn run(args: LaunchArgs, platform: Platform) {
     }
     if require_account {
         app.require_account();
+    } else {
+        app.restore_account();
     }
     #[cfg(feature = "test-harness")]
     {

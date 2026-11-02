@@ -303,7 +303,7 @@ mod tests {
         };
         menu.build(W, H, &escape, &mut key_bindings, text_width);
         let gate = menu.build(W, H, &MenuInput::default(), &mut key_bindings, text_width);
-        assert!(texts(&gate).contains(&"Pomme needs a Minecraft account."));
+        assert!(texts(&gate).contains(&"btn rust launcher needs a Minecraft account."));
         assert!(texts(&gate).contains(&"Quit"));
         assert!(!texts(&gate).contains(&"Back"));
 
