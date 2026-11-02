@@ -1164,6 +1164,10 @@ mod tests {
         assert!(hovered((18.0, 30.0)));
         assert!(hovered((53.9, 53.9)));
         assert!(!hovered((17.9, 30.0)));
+        assert!(!hovered((54.0, 30.0)));
+    }
+}
+
 #[cfg(target_os = "android")]
 fn android_clipboard_get() -> Option<String> {
     use jni::objects::{JObject, JValue};
