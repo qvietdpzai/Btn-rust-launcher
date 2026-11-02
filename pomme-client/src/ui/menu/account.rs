@@ -114,7 +114,7 @@ impl MainMenu {
                 ),
                 (None, SignIn::Idle) if gated => (
                     vec![
-                        "Pomme needs a Minecraft account.".into(),
+                        "btn needs a Minecraft account.".into(),
                         "Sign in with the Microsoft account that owns Minecraft.".into(),
                     ],
                     None,

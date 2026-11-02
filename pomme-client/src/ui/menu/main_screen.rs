@@ -148,7 +148,7 @@ impl MainMenu {
         elements.push(MenuElement::Text {
             x: btn_x,
             y: cy,
-            text: "Pomme".into(),
+            text: "btn".into(),
             scale: title_size,
             color: COL_WORDMARK,
             centered: false,
@@ -425,7 +425,7 @@ impl MainMenu {
             color: footer_col,
             centered: false,
         });
-        let copy = format!("Pomme {}", crate::update::version());
+        let copy = format!("btn {}", crate::update::version());
         let copy_w = text_width_fn(&copy, footer_size);
         elements.push(MenuElement::Text {
             x: screen_w - footer_pad - copy_w,

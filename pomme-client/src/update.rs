@@ -212,11 +212,11 @@ mod tests {
 
     #[tokio::test]
     async fn the_appimage_is_replaced_whole_and_executable() {
-        let dir = install_dir("appimage", &[("Pomme.AppImage", "old")]);
-        let appimage = dir.join("Pomme.AppImage");
+        let dir = install_dir("appimage", &[("btn.AppImage", "old")]);
+        let appimage = dir.join("btn.AppImage");
         replace_appimage(b"new", &appimage).await.unwrap();
-        assert_eq!(read(&dir, "Pomme.AppImage"), "new");
-        assert!(!dir.join("Pomme.AppImage.part").exists());
+        assert_eq!(read(&dir, "btn.AppImage"), "new");
+        assert!(!dir.join("btn.AppImage.part").exists());
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
