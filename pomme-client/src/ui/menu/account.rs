@@ -275,9 +275,8 @@ impl MainMenu {
                 if !name.is_empty() && name != self.username {
                     self.username = name;
                     action = MenuAction::Account(None);
-                } else {
-                    self.close_account(key_bindings);
                 }
+                self.close_account(key_bindings);
             }
             Some("Quit") => action = MenuAction::Quit,
             _ => {}
