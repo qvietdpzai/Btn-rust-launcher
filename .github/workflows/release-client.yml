@@ -241,8 +241,68 @@ jobs:
           path: dist/
           if-no-files-found: error
 
+  build-android:
+    needs: check
+    if: needs.check.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 35
+          target: android-35
+          build-tools: 35.0.0
+
+      - uses: ./.github/actions/setup-rust
+        with:
+          cache-key: android-release
+
+      - name: Add the Android target
+        run: rustup target add aarch64-linux-android
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk@4.1.2 --locked
+
+      # Build OpenAL Soft for Android (arm64-v8a), staged into jniLibs.
+      - name: Build OpenAL Soft (Android)
+        run: |
+          python3 tools/build_openal.py android pomme-android/app/src/main/jniLibs/arm64-v8a
+
+      # Build the Rust cdylib into jniLibs/arm64-v8a/libpomme_android.so.
+      - name: Build btn rust launcher for Android
+        env:
+          POMME_RELEASE: ${{ needs.check.outputs.tag }}
+          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_ROOT }}
+        run: |
+          cargo ndk -t arm64-v8a -o pomme-android/app/src/main/jniLibs build -p pomme-android --release
+
+      # Assemble the debug APK with Gradle.
+      - name: Assemble APK
+        working-directory: pomme-android
+        run: ./gradlew -q assembleDebug
+
+      - name: Rename APK to btn rust launcher
+        run: |
+          mv pomme-android/app/build/outputs/apk/debug/app-debug.apk \
+             pomme-android/app/build/outputs/apk/debug/btn-rust-launcher-android.apk
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: btn-rust-launcher-android
+          path: pomme-android/app/build/outputs/apk/debug/btn-rust-launcher-android.apk
+
   release-client:
-    needs: [check, build-client]
+    needs: [check, build-client, build-android]
     if: >-
       needs.check.outputs.should_release == 'true' && !inputs.dry_run
       && github.event_name != 'pull_request'
@@ -257,7 +317,6 @@ jobs:
         with:
           path: dist
           merge-multiple: true
-
       - name: Generate checksums
         run: |
           cd dist
@@ -273,6 +332,7 @@ jobs:
           generate_release_notes: ${{ needs.check.outputs.prev != '' }}
           body: |
             These builds aren't signed yet, so the first launch needs one extra step:
-            - **macOS:** open `Pomme.app` with right-click → Open, or allow it under System Settings → Privacy & Security.
+            - **macOS:** open `btn rust launcher.app` with right-click → Open, or allow it under System Settings → Privacy & Security.
             - **Windows:** on the SmartScreen prompt, choose More info → Run anyway.
-            - **Linux:** `chmod +x pomme-client-linux-x64-gnu.AppImage`, then run it.
+            - **Linux:** `chmod +x btn-rust-launcher-linux-x64-gnu.AppImage`, then run it.
+            - **Android:** install `btn-rust-launcher-android.apk` on an Android 10+ device with Vulkan 1.1; first launch downloads Minecraft assets (~500 MB).
