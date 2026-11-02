@@ -1176,7 +1176,7 @@ fn android_clipboard_get() -> Option<String> {
     let app = crate::util::ANDROID_APP.read().ok()?.clone()?;
     // SAFETY: android-activity's pointer is the process's JavaVM.
     let vm = unsafe { jni::JavaVM::from_raw(app.vm_as_ptr().cast()) };
-    vm.attach_current_thread(|env| {
+    vm.attach_current_thread(|env| -> Result<Option<String>, jni::errors::Error> {
         let activity = unsafe { JObject::from_raw(env, app.activity_as_ptr().cast()) };
         let clipboard = env
             .call_method(
@@ -1236,7 +1236,7 @@ fn android_clipboard_set(text: &str) -> bool {
     };
     // SAFETY: android-activity's pointer is the process's JavaVM.
     let vm = unsafe { jni::JavaVM::from_raw(app.vm_as_ptr().cast()) };
-    vm.attach_current_thread(|env| {
+    vm.attach_current_thread(|env| -> Result<bool, jni::errors::Error> {
         let activity = unsafe { JObject::from_raw(env, app.activity_as_ptr().cast()) };
         let clipboard = env
             .call_method(
