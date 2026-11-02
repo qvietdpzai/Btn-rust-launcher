@@ -1491,7 +1491,7 @@ impl MainMenu {
             Screen::Friends => {
                 self.build_friends(screen_w, screen_h, input, &text_width_fn, key_bindings)
             }
-            Screen::Account => self.build_account(screen_w, screen_h, input, key_bindings),
+            Screen::Account => self.build_account(screen_w, screen_h, input, &text_width_fn, key_bindings),
             Screen::ConfirmDelete(_) => {
                 self.build_confirm_delete(screen_w, screen_h, input, &text_width_fn, key_bindings)
             }

@@ -87,6 +87,7 @@ impl MainMenu {
         screen_w: f32,
         screen_h: f32,
         input: &MenuInput,
+        text_width_fn: &dyn Fn(&str, f32) -> f32,
         key_bindings: &KeyBindings,
     ) -> MainMenuResult {
         let gated = self.account_gated();
