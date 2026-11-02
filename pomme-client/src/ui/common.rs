@@ -266,9 +266,14 @@ pub fn push_results_overlay(
 
 /// The system clipboard's text, empty when there's none or it can't be read.
 pub(crate) fn get_clipboard() -> String {
-    // TODO: Android's clipboard is a Java service (ClipboardManager), via JNI.
+    // Android's clipboard is a Java service (ClipboardManager), reached via JNI.
     #[cfg(target_os = "android")]
-    return String::new();
+    {
+        if let Some(text) = android_clipboard_get() {
+            return text;
+        }
+        return String::new();
+    }
     // SAFETY: the general pasteboard is safe to use from any thread.
     #[cfg(target_os = "ios")]
     return unsafe { objc2_ui_kit::UIPasteboard::generalPasteboard().string() }
@@ -284,8 +289,7 @@ pub(crate) fn get_clipboard() -> String {
 pub(crate) fn set_clipboard(text: &str) -> bool {
     #[cfg(target_os = "android")]
     {
-        let _ = text;
-        false
+        return android_clipboard_set(text);
     }
     #[cfg(target_os = "ios")]
     {
@@ -1160,6 +1164,101 @@ mod tests {
         assert!(hovered((18.0, 30.0)));
         assert!(hovered((53.9, 53.9)));
         assert!(!hovered((17.9, 30.0)));
-        assert!(!hovered((54.0, 30.0)));
-    }
+#[cfg(target_os = "android")]
+fn android_clipboard_get() -> Option<String> {
+    use jni::objects::{JObject, JValue};
+    use jni::{jni_sig, jni_str};
+
+    let app = crate::util::ANDROID_APP.read().ok()?.clone()?;
+    // SAFETY: android-activity's pointer is the process's JavaVM.
+    let vm = unsafe { jni::JavaVM::from_raw(app.vm_as_ptr().cast()) };
+    vm.attach_current_thread(|env| {
+        let activity = unsafe { JObject::from_raw(env, app.activity_as_ptr().cast()) };
+        let clipboard = env
+            .call_method(
+                &activity,
+                jni_str!("getSystemService"),
+                jni_sig!("(Ljava/lang/String;)Ljava/lang/Object;"),
+                &[JValue::Object(&env.new_string("clipboard").unwrap())],
+            )?
+            .l()?;
+        let clip = env
+            .call_method(
+                &clipboard,
+                jni_str!("getPrimaryClip"),
+                jni_sig!("()Landroid/content/ClipData;"),
+                &[],
+            )?
+            .l()?;
+        if clip.is_null() {
+            return Ok(None);
+        }
+        let item = env
+            .call_method(
+                &clip,
+                jni_str!("getItemAt"),
+                jni_sig!("(I)Landroid/content/ClipData$Item;"),
+                &[JValue::Int(0)],
+            )?
+            .l()?;
+        let text = env
+            .call_method(
+                &item,
+                jni_str!("getText"),
+                jni_sig!("()Ljava/lang/CharSequence;"),
+                &[],
+            )?
+            .l()?;
+        if text.is_null() {
+            return Ok(None);
+        }
+        let s = env
+            .call_method(&text, jni_str!("toString"), jni_sig!("()Ljava/lang/String;"), &[])?
+            .l()?;
+        let rust_str: String = env.get_string(&s.into()).unwrap_or_default().into();
+        Ok(Some(rust_str))
+    })
+    .ok()
+    .flatten()
+}
+
+#[cfg(target_os = "android")]
+fn android_clipboard_set(text: &str) -> bool {
+    use jni::objects::{JObject, JValue};
+    use jni::{jni_sig, jni_str};
+
+    let Some(app) = crate::util::ANDROID_APP.read().ok().and_then(|a| a.clone()) else {
+        return false;
+    };
+    // SAFETY: android-activity's pointer is the process's JavaVM.
+    let vm = unsafe { jni::JavaVM::from_raw(app.vm_as_ptr().cast()) };
+    vm.attach_current_thread(|env| {
+        let activity = unsafe { JObject::from_raw(env, app.activity_as_ptr().cast()) };
+        let clipboard = env
+            .call_method(
+                &activity,
+                jni_str!("getSystemService"),
+                jni_sig!("(Ljava/lang/String;)Ljava/lang/Object;"),
+                &[JValue::Object(&env.new_string("clipboard").unwrap())],
+            )?
+            .l()?;
+        let label = env.new_string("btn rust launcher")?;
+        let text_obj = env.new_string(text)?;
+        let clip_data = env
+            .call_static_method(
+                jni_str!("android/content/ClipData"),
+                jni_str!("newPlainText"),
+                jni_sig!("(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;"),
+                &[JValue::Object(&label), JValue::Object(&text_obj)],
+            )?
+            .l()?;
+        env.call_method(
+            &clipboard,
+            jni_str!("setPrimaryClip"),
+            jni_sig!("(Landroid/content/ClipData;)V"),
+            &[JValue::Object(&clip_data)],
+        )?;
+        Ok(true)
+    })
+    .unwrap_or(false)
 }

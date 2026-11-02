@@ -134,8 +134,6 @@ impl MainMenu {
                         code.verification_uri
                     )],
                     Some(code.user_code.clone()),
-                    // TODO: Android's clipboard, through JNI; `set_clipboard`
-                    // can't copy there yet.
                     if cfg!(target_os = "android") {
                         vec!["Open Link", "Cancel"]
                     } else {
