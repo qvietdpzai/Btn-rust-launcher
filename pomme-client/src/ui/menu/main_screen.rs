@@ -154,59 +154,13 @@ impl MainMenu {
             centered: false,
         });
 
+        // "btn mc rust" edition badge.
         let sub_x = btn_x + pomme_w + 8.0 * s;
         let sub_y1 = cy + title_size - sub_size * 2.0 - 4.0 * s;
-        let sub_y2 = cy + title_size - sub_size - 1.0 * s;
-        let badge_t = ((anim_t - 2.0) / 0.3).clamp(0.0, 1.0);
-        let badge_scale = ease_out_cubic(badge_t);
-
-        let rust_w = text_width_fn("Rust", sub_size);
-        let badge_pad_x = 5.0 * s;
-        let badge_pad_y = 2.5 * s;
-        let badge_w = rust_w + badge_pad_x * 2.0;
-        let badge_h = sub_size + badge_pad_y * 2.0;
-        let badge_r = badge_h * 0.5;
-
-        if badge_t < 1.0 {
-            elements.push(MenuElement::Text {
-                x: sub_x,
-                y: sub_y1,
-                text: "Java".into(),
-                scale: sub_size,
-                color: text_dim,
-                centered: false,
-            });
-        }
-
-        if badge_t > 0.0 {
-            let bx = sub_x - badge_pad_x;
-            let by = sub_y1 - badge_pad_y;
-            let bw = badge_w * badge_scale;
-            elements.push(MenuElement::Rect {
-                x: bx,
-                y: by,
-                w: bw,
-                h: badge_h,
-                corner_radius: badge_r,
-                color: [accent[0], accent[1], accent[2], 0.95 * badge_scale],
-            });
-            if badge_t >= 0.5 {
-                let text_a = ((badge_t - 0.5) / 0.5).min(1.0);
-                elements.push(MenuElement::Text {
-                    x: sub_x,
-                    y: sub_y1,
-                    text: "Rust".into(),
-                    scale: sub_size,
-                    color: [0.05, 0.05, 0.1, text_a],
-                    centered: false,
-                });
-            }
-        }
-
         elements.push(MenuElement::Text {
             x: sub_x,
-            y: sub_y2,
-            text: "Edition".into(),
+            y: sub_y1,
+            text: "btn mc rust".into(),
             scale: sub_size,
             color: text_dim,
             centered: false,
