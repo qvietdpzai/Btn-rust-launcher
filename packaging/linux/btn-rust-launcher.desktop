@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=Pomme
+Name=btn rust launcher
 Comment=Minecraft client
-Exec=pomme-client
-Icon=pomme
+Exec=btn-rust-launcher
+Icon=btn-rust-launcher
 Categories=Game;
 Terminal=false

@@ -118,18 +118,18 @@ jobs:
         include:
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            artifact: pomme-client.exe
-            name: pomme-client-windows-x64
+            artifact: btn-rust-launcher.exe
+            name: btn-rust-launcher-windows-x64
             openal_classifier: natives-windows
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            artifact: pomme-client
-            name: pomme-client-linux-x64-gnu
+            artifact: btn-rust-launcher
+            name: btn-rust-launcher-linux-x64-gnu
             openal_classifier: natives-linux
           - os: macos-latest
             target: aarch64-apple-darwin
-            artifact: pomme-client
-            name: pomme-client-macos-arm64
+            artifact: btn-rust-launcher
+            name: btn-rust-launcher-macos-arm64
             openal_classifier: natives-macos-arm64
 
     runs-on: ${{ matrix.os }}
@@ -144,7 +144,7 @@ jobs:
 
       - name: Build
         env:
-          POMME_RELEASE: ${{ needs.check.outputs.tag }}
+          BTN_RELEASE: ${{ needs.check.outputs.tag }}
         run: cargo build -p pomme-client --release --target ${{ matrix.target }}
 
       # The runner images disagree on whether `python` or `python3` is on PATH,
@@ -218,7 +218,7 @@ jobs:
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" `
             "/DAppVersion=${{ needs.check.outputs.version }}" `
             "/DBundle=$PWD\bundle" "/DOutDir=$PWD\dist" "/DOutName=${{ matrix.name }}-setup" `
-            packaging\windows\pomme.iss
+            packaging\windows\btn-rust-launcher.iss
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - uses: actions/upload-artifact@v7

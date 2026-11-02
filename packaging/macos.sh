@@ -11,11 +11,11 @@ here=$(cd "$(dirname "$0")" && pwd)
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 
-app="$stage/Pomme.app/Contents"
+app="$stage/btn rust launcher.app/Contents"
 mkdir -p "$app/MacOS" "$app/Resources" "$(dirname "$out")"
 cp "$bundle"/* "$app/MacOS/"
-cp "$here/../pomme-client/assets/icon.icns" "$app/Resources/"
+cp "$here/../btn-client/assets/icon.icns" "$app/Resources/"
 sed "s/@VERSION@/$version/g" "$here/macos/Info.plist" > "$app/Info.plist"
 ln -s /Applications "$stage/Applications"
 
-hdiutil create -volname Pomme -srcfolder "$stage" -format UDZO -ov "$out"
+hdiutil create -volname "btn rust launcher" -srcfolder "$stage" -format UDZO -ov "$out"

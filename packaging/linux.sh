@@ -27,12 +27,12 @@ fetch "$tool_url" "$stage/appimagetool" "$tool_sha"
 fetch "$runtime_url" "$stage/runtime" "$runtime_sha"
 chmod +x "$stage/appimagetool"
 
-appdir="$stage/Pomme.AppDir"
+appdir="$stage/btn-rust-launcher.AppDir"
 mkdir -p "$appdir/usr/bin" "$(dirname "$out")"
 cp "$bundle"/* "$appdir/usr/bin/"
-cp "$here/linux/pomme.desktop" "$appdir/"
-cp "$here/../pomme-client/assets/icon.png" "$appdir/pomme.png"
-ln -s usr/bin/pomme-client "$appdir/AppRun"
+cp "$here/linux/btn-rust-launcher.desktop" "$appdir/"
+cp "$here/../btn-client/assets/icon.png" "$appdir/btn-rust-launcher.png"
+ln -s usr/bin/btn-rust-launcher "$appdir/AppRun"
 
 # CI runners have no FUSE to mount the tool's own AppImage.
 APPIMAGE_EXTRACT_AND_RUN=1 VERSION=$version ARCH=x86_64 "$stage/appimagetool" \
