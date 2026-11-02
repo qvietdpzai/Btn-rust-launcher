@@ -1220,7 +1220,8 @@ fn android_clipboard_get() -> Option<String> {
         let s = env
             .call_method(&text, jni_str!("toString"), jni_sig!("()Ljava/lang/String;"), &[])?
             .l()?;
-        let rust_str: String = match env.get_string::<jni::objects::JString>(&s.into()) {
+        let s = jni::objects::JString::from(s);
+        let rust_str: String = match env.get_string(&s) {
             Ok(js) => js.into(),
             Err(_) => String::new(),
         };
