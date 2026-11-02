@@ -260,6 +260,8 @@ jobs:
       # latest command-line tools and accept all licenses non-interactively.
       - name: Set up Android SDK
         shell: bash
+        env:
+          ANDROID_HOME: /opt/android-sdk
         run: |
           mkdir -p "$ANDROID_HOME"
           cd "$ANDROID_HOME"
@@ -274,13 +276,17 @@ jobs:
             "platform-tools" "platforms;android-35" "build-tools;35.0.0" \
             "ndk;27.2.12479018" >/dev/null
 
+      - name: Export Android env
+        shell: bash
+        run: |
+          echo "ANDROID_HOME=/opt/android-sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=/opt/android-sdk/ndk/27.2.12479018" >> "$GITHUB_ENV"
+
       - name: Verify Android SDK
         shell: bash
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
-          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
-          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.2.12479018" >> "$GITHUB_ENV"
-          "$ANDROID_HOME/latest/bin/sdkmanager" --list_installed | grep -E "platform-tools|platforms;android-35|build-tools;35.0.0|ndk;27.2.12479018"
+          /opt/android-sdk/latest/bin/sdkmanager --list_installed | grep -E "platform-tools|platforms;android-35|build-tools;35.0.0|ndk;27.2.12479018"
 
       - uses: ./.github/actions/setup-rust
         with:
