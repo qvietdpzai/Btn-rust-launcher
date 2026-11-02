@@ -271,10 +271,14 @@ jobs:
           echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.2.12479018" >> "$GITHUB_ENV"
 
-      - name: Verify Android SDK
+      - name: Install cmake and ninja for OpenAL build
         shell: bash
         run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed | grep -E "platform-tools|platforms;android-35|build-tools;35.0.0|ndk;27.2.12479018"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq cmake ninja-build
+          mkdir -p "$ANDROID_HOME/cmake/3.22.1/bin"
+          ln -sf "$(command -v cmake)" "$ANDROID_HOME/cmake/3.22.1/bin/cmake"
+          ln -sf "$(command -v ninja)" "$ANDROID_HOME/cmake/3.22.1/bin/ninja"
 
       - uses: ./.github/actions/setup-rust
         with:
