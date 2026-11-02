@@ -114,7 +114,7 @@ impl MainMenu {
                 ),
                 (None, SignIn::Idle) if gated => (
                     vec![
-                        "btn needs a Minecraft account.".into(),
+                        "btn rust launcher needs a Minecraft account.".into(),
                         "Sign in with the Microsoft account that owns Minecraft.".into(),
                     ],
                     None,

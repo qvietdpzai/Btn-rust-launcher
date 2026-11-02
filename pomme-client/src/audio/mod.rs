@@ -230,7 +230,7 @@ impl AudioEngine {
         let (init_tx, init_rx) = crossbeam_channel::bounded(1);
 
         let worker = std::thread::Builder::new()
-            .name("btn Sound engine".to_string())
+            .name("btn rust launcher Sound engine".to_string())
             .spawn(move || {
                 let context = match Context::open_default(false) {
                     Ok(context) => context,

@@ -33,9 +33,9 @@ pub enum ContextError {
     HandleError(#[from] raw_window_handle::HandleError),
 }
 
-const VK_APP_NAME: &CStr = c"btn";
+const VK_APP_NAME: &CStr = c"btn rust launcher";
 const VK_APP_VERSION: u32 = vk::make_api_version(0, 0, 1, 0);
-const VK_ENGINE_NAME: &CStr = c"btn Engine";
+const VK_ENGINE_NAME: &CStr = c"btn rust launcher Engine";
 const VK_ENGINE_VERSION: u32 = vk::make_api_version(0, 0, 1, 0);
 // 1.2 is the highest feature set used; requesting higher makes injected layers
 // (e.g. VK_LAYER_OBS_HOOK, capped at 1.3) warn about a version mismatch.

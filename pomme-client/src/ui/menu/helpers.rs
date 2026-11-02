@@ -592,7 +592,7 @@ pub(super) fn push_bottom_text(
         centered: false,
     });
 
-    let name = "btn";
+    let name = "btn rust launcher";
     let tag = crate::update::version();
     let tag_size = fs * 0.65;
     let gap = 2.0 * gs;
@@ -1095,7 +1095,7 @@ pub(super) const LINKS: [(&str, char, &str); 3] = [
 pub(super) const THEMES: [(&str, PanoramaTheme); 3] = [
     ("Java", PanoramaTheme::Java),
     ("Bedrock", PanoramaTheme::Bedrock),
-    ("btn", PanoramaTheme::Pomme),
+    ("btn rust launcher", PanoramaTheme::Pomme),
 ];
 
 /// The Bedrock theme's textures, downloaded the first time it's picked.

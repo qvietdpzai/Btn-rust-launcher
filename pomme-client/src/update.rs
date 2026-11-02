@@ -212,11 +212,11 @@ mod tests {
 
     #[tokio::test]
     async fn the_appimage_is_replaced_whole_and_executable() {
-        let dir = install_dir("appimage", &[("btn.AppImage", "old")]);
-        let appimage = dir.join("btn.AppImage");
+        let dir = install_dir("appimage", &[("btn rust launcher.AppImage", "old")]);
+        let appimage = dir.join("btn rust launcher.AppImage");
         replace_appimage(b"new", &appimage).await.unwrap();
-        assert_eq!(read(&dir, "btn.AppImage"), "new");
-        assert!(!dir.join("btn.AppImage.part").exists());
+        assert_eq!(read(&dir, "btn rust launcher.AppImage"), "new");
+        assert!(!dir.join("btn rust launcher.AppImage.part").exists());
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;

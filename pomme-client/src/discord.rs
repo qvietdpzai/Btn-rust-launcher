@@ -5,11 +5,11 @@ const DISCORD_CLIENT_ID: &str = "1489624876909330452";
 
 fn base_activity(version: &str) -> Activity<'static> {
     Activity::new()
-        .details(format!("btn Client — {version}"))
+        .details(format!("btn rust launcher Client — {version}"))
         .assets(
             Assets::new()
                 .large_image("green-apple")
-                .large_text("btn Client"),
+                .large_text("btn rust launcher Client"),
         )
 }
 

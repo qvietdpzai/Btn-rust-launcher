@@ -1634,7 +1634,7 @@ pub fn build_debug_overlay(
     let cz = bz.div_euclid(16);
 
     let mut left_lines: Vec<String> = vec![
-        format!("btn ({}fps)", info.fps),
+        format!("btn rust launcher ({}fps)", info.fps),
         String::new(),
         format!("XYZ: {:.3} / {:.5} / {:.3}", pos.x, pos.y, pos.z),
         format!("Block: {} {} {}", bx, by, bz),
