@@ -430,6 +430,8 @@ impl MainMenu {
             centered: false,
         });
         let copy = format!("btn rust launcher {}", crate::update::version());
+        let player_name = &self.username;
+        let player_line = format!("Playing as: {}", player_name);
         let copy_w = text_width_fn(&copy, footer_size);
         elements.push(MenuElement::Text {
             x: screen_w - footer_pad - copy_w,
@@ -437,6 +439,15 @@ impl MainMenu {
             text: copy,
             scale: footer_size,
             color: footer_col,
+            centered: false,
+        });
+        let player_w = text_width_fn(&player_line, footer_size);
+        elements.push(MenuElement::Text {
+            x: screen_w - footer_pad - player_w,
+            y: footer_y + footer_size + 2.0 * s,
+            text: player_line,
+            scale: footer_size,
+            color: accent,
             centered: false,
         });
 
