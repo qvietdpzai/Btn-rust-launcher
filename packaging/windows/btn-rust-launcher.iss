@@ -38,4 +38,4 @@ Filename: "{app}\btn-rust-launcher.exe"; Description: "{cm:LaunchProgram,btn rus
 ; What the updater leaves behind; the data folder (%LOCALAPPDATA%\btn rust launcher) stays.
 [UninstallDelete]
 Type: files; Name: "{app}\*.old"
-Type: filesandordirs; Name="{app}\.btn-update"
+Type: filesandordirs; Name: "{app}\.btn-update"
