@@ -31,7 +31,7 @@ appdir="$stage/btn-rust-launcher.AppDir"
 mkdir -p "$appdir/usr/bin" "$(dirname "$out")"
 cp "$bundle"/* "$appdir/usr/bin/"
 cp "$here/linux/btn-rust-launcher.desktop" "$appdir/"
-cp "$here/../btn-client/assets/icon.png" "$appdir/btn-rust-launcher.png"
+cp "$here/../pomme-client/assets/icon.png" "$appdir/btn-rust-launcher.png"
 ln -s usr/bin/btn-rust-launcher "$appdir/AppRun"
 
 # CI runners have no FUSE to mount the tool's own AppImage.

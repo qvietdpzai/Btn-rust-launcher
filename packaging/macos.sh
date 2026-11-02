@@ -14,7 +14,7 @@ trap 'rm -rf "$stage"' EXIT
 app="$stage/btn rust launcher.app/Contents"
 mkdir -p "$app/MacOS" "$app/Resources" "$(dirname "$out")"
 cp "$bundle"/* "$app/MacOS/"
-cp "$here/../btn-client/assets/icon.icns" "$app/Resources/"
+cp "$here/../pomme-client/assets/icon.icns" "$app/Resources/"
 sed "s/@VERSION@/$version/g" "$here/macos/Info.plist" > "$app/Info.plist"
 ln -s /Applications "$stage/Applications"
 
