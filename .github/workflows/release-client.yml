@@ -144,7 +144,7 @@ jobs:
 
       - name: Build
         env:
-          BTN_RELEASE: ${{ needs.check.outputs.tag }}
+          POMME_RELEASE: ${{ needs.check.outputs.tag }}
         run: cargo build -p pomme-client --release --target ${{ matrix.target }}
 
       # The runner images disagree on whether `python` or `python3` is on PATH,
