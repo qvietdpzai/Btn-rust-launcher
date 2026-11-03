@@ -11,7 +11,7 @@ use pomme_install::{Progress, client};
 /// and local builds have none and never update.
 const RELEASE: Option<&str> = option_env!("POMME_RELEASE");
 /// Where a new release unpacks before its files move into place.
-const STAGING: &str = ".pomme-update";
+const STAGING: &str = ".btn-update";
 /// Added to a replaced file's name; it's removed on a later start, since a
 /// running Windows exe can be renamed but not deleted.
 const REPLACED: &str = "old";
@@ -62,10 +62,13 @@ pub async fn run(
     // Before the swap: Linux reports a renamed running binary by its new name.
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
     let dir = exe.parent().ok_or("the binary has no folder")?.to_owned();
+    // The binary may have been renamed between releases (e.g. pomme-client ->
+    // btn-rust-launcher), so point at the new name rather than the old path.
+    let new_exe = dir.join(client::platform_binary()?);
     tokio::task::spawn_blocking(move || apply(&zip, &dir))
         .await
         .map_err(|e| e.to_string())??;
-    Ok(Some(exe))
+    Ok(Some(if new_exe.exists() { new_exe } else { exe }))
 }
 
 /// The `.AppImage` this runs from, which its runtime names in `$APPIMAGE`;
@@ -190,23 +193,23 @@ mod tests {
 
     #[test]
     fn apply_swaps_every_file_and_leaves_the_old_ones_aside() {
-        let dir = install_dir("apply", &[("pomme-client", "old"), ("libopenal.so", "old")]);
+        let dir = install_dir("apply", &[("btn-rust-launcher", "old"), ("libopenal.so", "old")]);
         let zip = release_zip(&[
-            ("pomme-client", "new"),
+            ("btn-rust-launcher", "new"),
             ("libopenal.so", "new"),
             ("OpenAL-Soft-NOTICE.txt", "new"),
         ]);
         apply(&zip, &dir).unwrap();
-        for name in ["pomme-client", "libopenal.so", "OpenAL-Soft-NOTICE.txt"] {
+        for name in ["btn-rust-launcher", "libopenal.so", "OpenAL-Soft-NOTICE.txt"] {
             assert_eq!(read(&dir, name), "new");
         }
-        assert_eq!(read(&dir, "pomme-client.old"), "old");
+        assert_eq!(read(&dir, "btn-rust-launcher.old"), "old");
         assert!(!dir.join(STAGING).exists());
 
         remove_leftovers(&dir);
-        assert!(!dir.join("pomme-client.old").exists());
+        assert!(!dir.join("btn-rust-launcher.old").exists());
         assert!(!dir.join("libopenal.so.old").exists());
-        assert_eq!(read(&dir, "pomme-client"), "new");
+        assert_eq!(read(&dir, "btn-rust-launcher"), "new");
         std::fs::remove_dir_all(&dir).unwrap();
     }
 
@@ -230,15 +233,15 @@ mod tests {
     fn a_failed_apply_puts_the_old_files_back() {
         let dir = install_dir(
             "rollback",
-            &[("pomme-client", "old"), ("libopenal.so", "old")],
+            &[("btn-rust-launcher", "old"), ("libopenal.so", "old")],
         );
         // Nothing can be renamed onto a folder that isn't empty.
         std::fs::create_dir_all(dir.join("libopenal.so.old/busy")).unwrap();
-        let zip = release_zip(&[("pomme-client", "new"), ("libopenal.so", "new")]);
+        let zip = release_zip(&[("btn-rust-launcher", "new"), ("libopenal.so", "new")]);
         assert!(apply(&zip, &dir).is_err());
-        assert_eq!(read(&dir, "pomme-client"), "old");
+        assert_eq!(read(&dir, "btn-rust-launcher"), "old");
         assert_eq!(read(&dir, "libopenal.so"), "old");
-        assert!(!dir.join("pomme-client.old").exists());
+        assert!(!dir.join("btn-rust-launcher.old").exists());
         assert!(!dir.join(STAGING).exists());
         std::fs::remove_dir_all(&dir).unwrap();
     }

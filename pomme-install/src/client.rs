@@ -11,7 +11,7 @@ use crate::{Progress, get};
 
 /// Newest first; listed rather than `/releases/latest`, which held the
 /// launcher's releases before the client's.
-const RELEASES_URL: &str = "https://api.github.com/repos/PommeMC/Client/releases?per_page=30";
+const RELEASES_URL: &str = "https://api.github.com/repos/qvietdpzai/Btn-rust-launcher/releases?per_page=30";
 const TAG_PREFIX: &str = "client-v";
 const CHECKSUMS_ASSET: &str = "sha256sums.txt";
 
@@ -29,19 +29,23 @@ struct Asset {
 
 /// The Linux AppImage, which updates by replacing itself: its inside is a
 /// read-only mount.
-pub const APPIMAGE: &str = "pomme-client-linux-x64-gnu.AppImage";
+pub const APPIMAGE: &str = "btn-rust-launcher-linux-x64-gnu.AppImage";
 
 /// This platform's release zip, the files that sit beside the binary.
 pub fn platform_zip() -> Result<&'static str, String> {
     match (std::env::consts::OS, std::env::consts::ARCH) {
-        ("windows", "x86_64") => Ok("pomme-client-windows-x64.zip"),
-        ("linux", "x86_64") => Ok("pomme-client-linux-x64-gnu.zip"),
-        ("macos", "aarch64") => Ok("pomme-client-macos-arm64.zip"),
+        ("windows", "x86_64") => Ok("btn-rust-launcher-windows-x64.zip"),
+        ("linux", "x86_64") => Ok("btn-rust-launcher-linux-x64-gnu.zip"),
+        ("macos", "aarch64") => Ok("btn-rust-launcher-macos-arm64.zip"),
+/// This platform's binary name inside the release zip.
+pub fn platform_binary() -> Result<&'static str, String> {
+    match (std::env::consts::OS, std::env::consts::ARCH) {
+        ("windows", "x86_64") => Ok("btn-rust-launcher.exe"),
+        ("linux", "x86_64") => Ok("btn-rust-launcher"),
+        ("macos", "aarch64") => Ok("btn-rust-launcher"),
         (os, arch) => Err(format!("No client build for {os}/{arch}")),
     }
-}
-
-/// Whether release `theirs` is a later build than `ours`, by the `x.y.z` of
+}, by the `x.y.z` of
 /// `client-vx.y.z+<minecraft>`; never for a tag that doesn't parse.
 pub fn is_newer(ours: &str, theirs: &str) -> bool {
     match (release_core(ours), release_core(theirs)) {
