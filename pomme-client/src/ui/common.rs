@@ -1175,7 +1175,7 @@ fn android_clipboard_get() -> Option<String> {
 
     let app = crate::util::ANDROID_APP.read().ok()?.clone()?;
     let vm = unsafe { jni::JavaVM::from_raw(app.vm_as_ptr().cast()) };
-    vm.attach_current_thread(|env| {
+    vm.attach_current_thread(|env| -> Result<Option<String>, jni::errors::Error> {
         let activity = unsafe { JObject::from_raw(env, app.activity_as_ptr().cast()) };
         let class = env.find_class(jni_str!("com/btn/btnrustlauncher/ClipboardHelper"))?;
         let result = env
@@ -1206,7 +1206,7 @@ fn android_clipboard_set(text: &str) -> bool {
         return false;
     };
     let vm = unsafe { jni::JavaVM::from_raw(app.vm_as_ptr().cast()) };
-    vm.attach_current_thread(|env| {
+    vm.attach_current_thread(|env| -> Result<bool, jni::errors::Error> {
         let activity = unsafe { JObject::from_raw(env, app.activity_as_ptr().cast()) };
         let class = env.find_class(jni_str!("com/btn/btnrustlauncher/ClipboardHelper"))?;
         let text_obj = env.new_string(text)?;
