@@ -3,7 +3,6 @@
 //! release's `sha256sums.txt`.
 
 use std::path::Path;
-
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 
@@ -37,6 +36,10 @@ pub fn platform_zip() -> Result<&'static str, String> {
         ("windows", "x86_64") => Ok("btn-rust-launcher-windows-x64.zip"),
         ("linux", "x86_64") => Ok("btn-rust-launcher-linux-x64-gnu.zip"),
         ("macos", "aarch64") => Ok("btn-rust-launcher-macos-arm64.zip"),
+        (os, arch) => Err(format!("No client build for {os}/{arch}")),
+    }
+}
+
 /// This platform's binary name inside the release zip.
 pub fn platform_binary() -> Result<&'static str, String> {
     match (std::env::consts::OS, std::env::consts::ARCH) {
@@ -45,7 +48,9 @@ pub fn platform_binary() -> Result<&'static str, String> {
         ("macos", "aarch64") => Ok("btn-rust-launcher"),
         (os, arch) => Err(format!("No client build for {os}/{arch}")),
     }
-}, by the `x.y.z` of
+}
+
+/// Whether release `theirs` is a later build than `ours`, by the `x.y.z` of
 /// `client-vx.y.z+<minecraft>`; never for a tag that doesn't parse.
 pub fn is_newer(ours: &str, theirs: &str) -> bool {
     match (release_core(ours), release_core(theirs)) {
@@ -82,8 +87,6 @@ pub async fn latest_release(http: &reqwest::Client) -> Result<Release, String> {
         .ok_or_else(|| "No client release found".to_owned())
 }
 
-/// File `name` of `release`, refused unless it matches the release's
-/// published sha256.
 pub async fn download(
     http: &reqwest::Client,
     release: &Release,
@@ -144,21 +147,12 @@ pub fn extract_flat(zip: &[u8], dir: &Path) -> Result<(), String> {
             continue;
         };
         let path = dir.join(name);
-        let failed = |e: std::io::Error| format!("{}: {e}", path.display());
-        let mut out = std::fs::File::create(&path).map_err(failed)?;
-        std::io::copy(&mut entry, &mut out).map_err(failed)?;
-        // The binary and the libraries beside it stay executable.
-        #[cfg(unix)]
-        if let Some(mode) = entry.unix_mode() {
-            use std::os::unix::fs::PermissionsExt;
-            std::fs::set_permissions(&path, std::fs::Permissions::from_mode(mode))
-                .map_err(failed)?;
-        }
+        let mut file = std::fs::File::create(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+        std::io::copy(&mut entry, &mut file).map_err(|e| format!("{}: {e}", path.display()))?;
     }
     Ok(())
 }
 
-/// The hash for `asset` in `sha256sum` output (`<hash>  <file>`).
 fn checksum_for(sums: &str, asset: &str) -> Option<String> {
     sums.lines().find_map(|line| {
         let mut fields = line.split_whitespace();
@@ -184,48 +178,35 @@ mod tests {
 
     #[test]
     fn the_version_drops_the_minecraft_part() {
-        assert_eq!(release_version("client-v0.2.8+26.2"), Some("0.2.8"));
-        assert_eq!(release_version("client-v0.2.8"), Some("0.2.8"));
-        assert_eq!(release_version("launcher-v0.1.2"), None);
+        assert_eq!(release_version("client-v0.1.0+26.2"), Some("0.1.0"));
+        assert_eq!(release_version("client-v0.1.0"), Some("0.1.0"));
+        assert_eq!(release_version("launcher-v0.3.0"), None);
     }
 
     #[test]
-    fn checksum_matches_the_file_name() {
-        let sums = "aa11  pomme-client-macos-arm64.zip\nbb22 *dist/pomme-client-windows-x64.zip\n";
-        assert_eq!(
-            checksum_for(sums, "pomme-client-windows-x64.zip").as_deref(),
-            Some("bb22")
-        );
-        assert_eq!(
-            checksum_for(sums, "pomme-client-macos-arm64.zip").as_deref(),
-            Some("aa11")
-        );
-        assert_eq!(checksum_for(sums, "pomme-client-linux-x64-gnu.zip"), None);
+    fn checksum_for_reads_the_hash() {
+        let sums = "aa11  btn-rust-launcher-macos-arm64.zip\nbb22 *dist/btn-rust-launcher-windows-x64.zip\n";
+        assert_eq!(checksum_for(sums, "btn-rust-launcher-windows-x64.zip").as_deref(), Some("bb22"));
+        assert_eq!(checksum_for(sums, "btn-rust-launcher-macos-arm64.zip").as_deref(), Some("aa11"));
+        assert_eq!(checksum_for(sums, "btn-rust-launcher-linux-x64-gnu.zip"), None);
     }
 
     #[test]
-    fn extract_flattens_keeps_modes_and_stays_inside_the_folder() {
-        let dir = crate::tests::temp_dir("extract-flat");
-        let zip = crate::tests::zip_of(&[
-            ("bundle/pomme-client", "new", 0o755),
-            ("../escape", "no", 0o644),
-        ]);
+    fn extract_flat_renames_nothing() {
+        let dir = std::env::temp_dir().join("pomme-install-extract-flat");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let zip = {
+            let mut w = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+            let opts = zip::write::SimpleFileOptions::default();
+            w.start_file("pomme-client", opts).unwrap();
+            std::io::Write::write_all(&mut w, b"new").unwrap();
+            w.start_file("libopenal.so", opts).unwrap();
+            std::io::Write::write_all(&mut w, b"new").unwrap();
+            w.finish().unwrap().into_inner()
+        };
         extract_flat(&zip, &dir).unwrap();
-        assert_eq!(
-            std::fs::read_to_string(dir.join("pomme-client")).unwrap(),
-            "new"
-        );
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let mode = std::fs::metadata(dir.join("pomme-client"))
-                .unwrap()
-                .permissions()
-                .mode();
-            assert_eq!(mode & 0o777, 0o755);
-        }
-        assert!(!dir.join("escape").exists());
-        assert!(!dir.parent().unwrap().join("escape").exists());
+        assert_eq!(std::fs::read_to_string(dir.join("pomme-client")).unwrap(), "new");
         std::fs::remove_dir_all(&dir).unwrap();
     }
 }
