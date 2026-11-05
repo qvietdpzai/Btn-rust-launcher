@@ -1189,8 +1189,11 @@ fn android_clipboard_get() -> Option<String> {
         if result.is_null() {
             return Ok(Some(String::new()));
         }
-        // Try to get string directly from the JObject
-        let text: String = env.get_string(&result.into()).map(|s| s.into()).unwrap_or_default();
+        let js = unsafe { jni::objects::JString::from_raw(env, result.as_raw()) };
+        let text: String = match env.get_string(&js) {
+            Ok(s) => s.into(),
+            Err(_) => String::new(),
+        };
         Ok(Some(text))
     })
     .ok()
