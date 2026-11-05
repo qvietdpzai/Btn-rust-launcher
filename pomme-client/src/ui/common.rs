@@ -1207,10 +1207,7 @@ fn android_clipboard_get() -> Option<String> {
             return Ok(Some(String::new()));
         }
         let js = unsafe { jni::objects::JString::from_raw(env, result.as_raw()) };
-        let text: String = match env.get_string(&js) {
-            Ok(s) => s.into(),
-            Err(_) => String::new(),
-        };
+        let text: String = env.get_string(&js).map(|s| String::from(s)).unwrap_or_default();
         Ok(Some(text))
     })
     .ok()
