@@ -1175,7 +1175,7 @@ fn android_clipboard_get() -> Option<String> {
 
     let app = crate::util::ANDROID_APP.read().ok()?.clone()?;
     let vm = unsafe { jni::JavaVM::from_raw(app.vm_as_ptr().cast()) };
-    vm.attach_current_thread(|env| {
+    vm.attach_current_thread(|env| -> Result<Option<String>, jni::errors::Error> {
         let activity = unsafe { JObject::from_raw(env, app.activity_as_ptr().cast()) };
         // Try to find the class using the app's class loader.
         let class_loader = env
