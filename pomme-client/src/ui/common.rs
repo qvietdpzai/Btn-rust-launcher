@@ -1173,11 +1173,32 @@ static ANDROID_CLIPBOARD: std::sync::Mutex<String> = std::sync::Mutex::new(Strin
 
 #[cfg(target_os = "android")]
 fn android_clipboard_get() -> Option<String> {
+    // Try service call first (works on all Android versions without JNI).
+    if let Ok(output) = std::process::Command::new("service")
+        .args(["call", "clipboard", "1"])
+        .output()
+    {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        // Parse the parcel output. The text is embedded in the parcel.
+        // Try to extract text from "s16" string parcels.
+        if let Some(start) = stdout.find("s16 \"") {
+            let rest = &stdout[start + 5..];
+            if let Some(end) = rest.find('"') {
+                return Some(rest[..end].to_string());
+            }
+        }
+    }
+    // Fallback to in-app clipboard.
     ANDROID_CLIPBOARD.lock().ok().map(|s| s.clone())
 }
 
 #[cfg(target_os = "android")]
 fn android_clipboard_set(text: &str) -> bool {
+    // Try service call first.
+    let _ = std::process::Command::new("service")
+        .args(["call", "clipboard", "2", "i32", "1", "s16", text])
+        .output();
+    // Also store in in-app clipboard as fallback.
     if let Ok(mut guard) = ANDROID_CLIPBOARD.lock() {
         *guard = text.to_string();
         true
