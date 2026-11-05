@@ -1,0 +1,9 @@
+{
+  "mcp": {
+    "btn-rust-launcher-docs": {
+      "type": "remote",
+      "url": "https://gitmcp.io/qvietdpzai/Btn-rust-launcher",
+      "enabled": true
+    }
+  }
+}
