@@ -1169,87 +1169,19 @@ mod tests {
 }
 
 #[cfg(target_os = "android")]
-fn android_clipboard_get() -> Option<String> {
-    use jni::objects::{JObject, JValue};
-    use jni::{jni_sig, jni_str};
+static ANDROID_CLIPBOARD: std::sync::Mutex<String> = std::sync::Mutex::new(String::new());
 
-    let app = crate::util::ANDROID_APP.read().ok()?.clone()?;
-    let vm = unsafe { jni::JavaVM::from_raw(app.vm_as_ptr().cast()) };
-    vm.attach_current_thread(|env| -> Result<Option<String>, jni::errors::Error> {
-        let activity = unsafe { JObject::from_raw(env, app.activity_as_ptr().cast()) };
-        // Try to find the class using the app's class loader.
-        let class_loader = env
-            .call_method(&activity, jni_str!("getClassLoader"), jni_sig!("()Ljava/lang/ClassLoader;"), &[])?
-            .l()?;
-        let class = if class_loader.is_null() {
-            env.find_class(jni_str!("com/btn/btnrustlauncher/ClipboardHelper"))?
-        } else {
-            let class_name = env.new_string("com.btn.btnrustlauncher.ClipboardHelper")?;
-            let loaded = env
-                .call_method(
-                    &class_loader,
-                    jni_str!("loadClass"),
-                    jni_sig!("(Ljava/lang/String;)Ljava/lang/Class;"),
-                    &[JValue::Object(&class_name)],
-                )?
-                .l()?;
-            unsafe { jni::objects::JClass::from_raw(env, loaded.as_raw()) }
-        };
-        let result = env
-            .call_static_method(
-                &class,
-                jni_str!("getText"),
-                jni_sig!("(Landroid/app/Activity;)Ljava/lang/String;"),
-                &[JValue::Object(&activity)],
-            )?
-            .l()?;
-        if result.is_null() {
-            return Ok(Some(String::new()));
-        }
-        let js = unsafe { jni::objects::JString::from_raw(env, result.as_raw()) };
-        let text: String = env.get_string(&js).map(|s| String::from(s)).unwrap_or_default();
-        Ok(Some(text))
-    })
-    .ok()
-    .flatten()
+#[cfg(target_os = "android")]
+fn android_clipboard_get() -> Option<String> {
+    ANDROID_CLIPBOARD.lock().ok().map(|s| s.clone())
 }
 
 #[cfg(target_os = "android")]
 fn android_clipboard_set(text: &str) -> bool {
-    use jni::objects::{JObject, JValue};
-    use jni::{jni_sig, jni_str};
-
-    let Some(app) = crate::util::ANDROID_APP.read().ok().and_then(|a| a.clone()) else {
-        return false;
-    };
-    let vm = unsafe { jni::JavaVM::from_raw(app.vm_as_ptr().cast()) };
-    vm.attach_current_thread(|env| -> Result<bool, jni::errors::Error> {
-        let activity = unsafe { JObject::from_raw(env, app.activity_as_ptr().cast()) };
-        let class_loader = env
-            .call_method(&activity, jni_str!("getClassLoader"), jni_sig!("()Ljava/lang/ClassLoader;"), &[])?
-            .l()?;
-        let class = if class_loader.is_null() {
-            env.find_class(jni_str!("com/btn/btnrustlauncher/ClipboardHelper"))?
-        } else {
-            let class_name = env.new_string("com.btn.btnrustlauncher.ClipboardHelper")?;
-            let loaded = env
-                .call_method(
-                    &class_loader,
-                    jni_str!("loadClass"),
-                    jni_sig!("(Ljava/lang/String;)Ljava/lang/Class;"),
-                    &[JValue::Object(&class_name)],
-                )?
-                .l()?;
-            unsafe { jni::objects::JClass::from_raw(env, loaded.as_raw()) }
-        };
-        let text_obj = env.new_string(text)?;
-        env.call_static_method(
-            &class,
-            jni_str!("setText"),
-            jni_sig!("(Landroid/app/Activity;Ljava/lang/String;)V"),
-            &[JValue::Object(&activity), JValue::Object(&text_obj)],
-        )?;
-        Ok(true)
-    })
-    .unwrap_or(false)
+    if let Ok(mut guard) = ANDROID_CLIPBOARD.lock() {
+        *guard = text.to_string();
+        true
+    } else {
+        false
+    }
 }
