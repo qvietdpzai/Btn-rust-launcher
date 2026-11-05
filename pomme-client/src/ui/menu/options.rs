@@ -248,7 +248,7 @@ impl MainMenu {
         if self.server_render_distance > 0 {
             self.server_render_distance.max(3)
         } else {
-            32
+            400
         }
     }
 

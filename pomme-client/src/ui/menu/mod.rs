@@ -137,7 +137,7 @@ fn default_fov() -> u32 {
 }
 
 fn default_max_framerate() -> u32 {
-    120
+    260
 }
 
 /// Top of the Max Framerate slider, where the cap is disabled (matching
