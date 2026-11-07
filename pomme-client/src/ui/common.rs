@@ -1169,23 +1169,54 @@ mod tests {
 }
 
 #[cfg(target_os = "android")]
-static ANDROID_CLIPBOARD: std::sync::Mutex<String> = std::sync::Mutex::new(String::new());
-
-#[cfg(target_os = "android")]
 fn android_clipboard_get() -> Option<String> {
-    // Try input keyevent for paste (triggers system paste).
-    // This doesn't return text, but triggers the IME paste.
-    // Fallback to in-app clipboard.
-    ANDROID_CLIPBOARD.lock().ok().map(|s| s.clone())
+    use jni::objects::{JObject, JValue};
+    use jni::{jni_sig, jni_str};
+
+    let app = crate::util::ANDROID_APP.read().ok()?.clone()?;
+    let vm = unsafe { jni::JavaVM::from_raw(app.vm_as_ptr().cast()) };
+    vm.attach_current_thread(|env| -> Result<Option<String>, jni::errors::Error> {
+        let activity = unsafe { JObject::from_raw(env, app.activity_as_ptr().cast()) };
+        let class = env.find_class(jni_str!("com/btn/btnrustlauncher/ClipboardHelper"))?;
+        let result = env
+            .call_static_method(
+                &class,
+                jni_str!("getText"),
+                jni_sig!("(Landroid/app/Activity;)Ljava/lang/String;"),
+                &[JValue::Object(&activity)],
+            )?
+            .l()?;
+        if result.is_null() {
+            return Ok(Some(String::new()));
+        }
+        let js = unsafe { jni::objects::JString::from_raw(env, result.as_raw()) };
+        let text: String = env.get_string(&js).map(|s| String::from(s)).unwrap_or_default();
+        Ok(Some(text))
+    })
+    .ok()
+    .flatten()
 }
 
 #[cfg(target_os = "android")]
 fn android_clipboard_set(text: &str) -> bool {
-    // Store in in-app clipboard.
-    if let Ok(mut guard) = ANDROID_CLIPBOARD.lock() {
-        *guard = text.to_string();
-        true
-    } else {
-        false
-    }
+    use jni::objects::{JObject, JValue};
+    use jni::{jni_sig, jni_str};
+
+    let Some(app) = crate::util::ANDROID_APP.read().ok().and_then(|a| a.clone()) else {
+        return false;
+    };
+    let vm = unsafe { jni::JavaVM::from_raw(app.vm_as_ptr().cast()) };
+    vm.attach_current_thread(|env| -> Result<bool, jni::errors::Error> {
+        let activity = unsafe { JObject::from_raw(env, app.activity_as_ptr().cast()) };
+        let class = env.find_class(jni_str!("com/btn/btnrustlauncher/ClipboardHelper"))?;
+        let text_obj = env.new_string(text)?;
+        env.call_static_method(
+            &class,
+            jni_str!("setText"),
+            jni_sig!("(Landroid/app/Activity;Ljava/lang/String;)V"),
+            &[JValue::Object(&activity), JValue::Object(&text_obj)],
+        )?;
+        Ok(true)
+    })
+    .unwrap_or(false)
 }
